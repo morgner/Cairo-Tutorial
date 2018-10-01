@@ -26,6 +26,8 @@ struct SColor
 using VPoints  = std::vector<SPoint>;
 using VFlecken = std::vector<SFleck>;
 
+// the first argument can be anything having the members x and y
+// a Gtk event, a SFleck or whatever
 template<typename P>
     double Distance( P const & a, SPoint const & b )
         {
