@@ -81,13 +81,13 @@ bool CCanvas::on_draw(Cairo::RefPtr<Cairo::Context> const & cr)
 
     if ( m_bShiftInit )
         {
-        m_tShift = tHome;
+        tHome = m_tShift = tSize/2;
         m_bShiftInit = false;
         }
     auto const tSizeHalf{tSize/2};
     if ( tHome != tSizeHalf )
         {
-        m_tShift -= tHome - tSizeHalf; tHome - tSizeHalf;
+        m_tShift -= tHome - tSizeHalf; tHome = tSizeHalf;
         }
 
     Cairo::Matrix matrix(1.0, 0.0, 0.0, 1.0, 0.0, 0.0);
