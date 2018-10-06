@@ -1,9 +1,37 @@
 #include "canvas.h"
+#include <pangomm/fontdescription.h>
 
 
 
 
 
+SPoint draw_text(Cairo::RefPtr<Cairo::Context> const & cr,
+                 double posx, double posy,
+                 std::string const & crsText, double const & dScale = 1.0)
+    {
+    cr->save();
+
+    Pango::FontDescription font;
+
+    font.set_family("Monospace");
+    font.set_absolute_size(12.0 * PANGO_SCALE*dScale);
+
+    CCanvas w;
+    auto layout = w.create_pango_layout(crsText);
+
+    layout->set_font_description(font);
+    int iWidth;
+    int iHeight;
+    SPoint tSize;
+
+    layout->get_pixel_size(iWidth, iHeight);
+    tSize = SPoint{iWidth, iHeight};
+    cr->move_to(posx-tSize.x/2, posy-tSize.y/2);
+    layout->show_in_cairo_context(cr);
+    cr->restore();
+
+    return std::move(tSize);
+    }
 
 bool CCanvas::Collision(SPoint const & tPoint)
     {
@@ -188,6 +216,9 @@ bool CCanvas::on_draw(Cairo::RefPtr<Cairo::Context> const & cr)
     cr->set_source_rgb( m_tMouseColor.r, m_tMouseColor.b, m_tMouseColor.b );
     cr->arc(m_tMousePos.x, m_tMousePos.y, 11, 0, 2*M_PI);
     cr->fill();
+
+    cr->set_source_rgb( .5, .5, .5 );
+    draw_text(cr, sin(2*M_PI*m_dAnimatorRot)*75, -60, "Informational text submission", 4);
 
     return true;
     }
