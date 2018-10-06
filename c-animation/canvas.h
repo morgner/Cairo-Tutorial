@@ -120,11 +120,17 @@ class CCanvas : public Gtk::DrawingArea
             add_events(Gdk::BUTTON1_MOTION_MASK | Gdk::BUTTON_PRESS_MASK | Gdk::POINTER_MOTION_MASK);
             add_events(Gdk::KEY_PRESS_MASK | Gdk::KEY_RELEASE_MASK);
 
-            m_fSlot       = sigc::bind(sigc::mem_fun(*this, &CCanvas::AnimateBi), 0);
-            m_fConnection = Glib::signal_timeout().connect(m_fSlot, 40);
+            m_fSlot[0]         = sigc::bind(sigc::mem_fun(*this, &CCanvas::AnimateBi), 0);
+            m_fSlot[1]         = sigc::bind(sigc::mem_fun(*this, &CCanvas::AnimateRot), 0);
+            m_afConnections[0] = Glib::signal_timeout().connect(m_fSlot[0], 40);
+            m_afConnections[1] = Glib::signal_timeout().connect(m_fSlot[1], 40);
             }
 
-        virtual ~CCanvas() { m_fConnection.disconnect(); };
+        virtual ~CCanvas()
+            {
+            m_afConnections[0].disconnect();
+            m_afConnections[1].disconnect();
+            };
 
     protected:
         // Override default signal handler:
@@ -168,38 +174,40 @@ class CCanvas : public Gtk::DrawingArea
 
         // animation
         bool             m_bAnimate{true};
-        bool             m_bAnimateLeft{true};
+        bool             m_bAnimateLeftBi{true};
+        bool             m_bAnimateLeftRot{true};
 
         // animation clock
-        double           m_dAnimator{0}; // $m_tAnimator animation parameter
-        double           m_dAnimStep{0}; // intermediate animation parameter
-        sigc::slot<bool> m_fSlot;
-        sigc::connection m_fConnection;
+        double           m_dAnimatorBi{0};  // $m_tAnimator animation parameter
+        double           m_dAnimatorRot{0}; // $m_tAnimator animation parameter
+        double           m_dAnimStep{0};    // intermediate animation parameter
+        sigc::slot<bool> m_fSlot[2];
+        sigc::connection m_afConnections[2];
 
         double           m_dAnimate   {0.0125}; // animation steps width
         double const     m_dAnimateMax{0.0250}; // maximal animation step width
         double const     m_dAnimateMin{0.0025}; // minimal animation step width
 
-        bool Animate(int c)
+        bool AnimateRot(int c) // rotation
             {
             if (!m_bAnimate) return true;
-            if (m_bAnimateLeft)
-                m_dAnimator = (m_dAnimator <=  m_dAnimate) ? 1 : m_dAnimator-m_dAnimate;
+            if (m_bAnimateLeftRot)
+                m_dAnimatorRot = (m_dAnimatorRot <=  m_dAnimate) ? 1 : m_dAnimatorRot-m_dAnimate;
                 else
-                m_dAnimator = (m_dAnimator >=1-m_dAnimate) ? 0 : m_dAnimator+m_dAnimate;
+                m_dAnimatorRot = (m_dAnimatorRot >=1-m_dAnimate) ? 0 : m_dAnimatorRot+m_dAnimate;
             queue_draw();
             return true;
             }
 
-        bool AnimateBi(int c)
+        bool AnimateBi(int c) // bidirectional
             {
             if (!m_bAnimate) return true;
-            if (m_bAnimateLeft)
-                m_dAnimator = m_dAnimator-m_dAnimate;
+            if (m_bAnimateLeftBi)
+                m_dAnimatorBi -= m_dAnimate;
                 else
-                m_dAnimator = m_dAnimator+m_dAnimate;
-            if (m_dAnimator <= 0) m_bAnimateLeft = false;
-            if (m_dAnimator >= 1) m_bAnimateLeft = true;
+                m_dAnimatorBi += m_dAnimate;
+            if (m_dAnimatorBi <= 0) m_bAnimateLeftBi = false;
+            if (m_dAnimatorBi >= 1) m_bAnimateLeftBi = true;
             queue_draw();
             return true;
             }

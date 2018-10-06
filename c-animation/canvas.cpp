@@ -171,9 +171,9 @@ bool CCanvas::on_draw(Cairo::RefPtr<Cairo::Context> const & cr)
         else
             cr->set_source_rgb( .0, .9, .0 );
         if ( i == 1 )
-            cr->arc(a.x + 250*m_dAnimator, a.y, a.r, 0, 2*M_PI);
+            cr->arc(a.x + 250*m_dAnimatorBi, a.y, a.r, 0, 2*M_PI);
         else if ( i == 2 )
-            cr->arc(a.x, a.y - 250*m_dAnimator, a.r, 0, 2*M_PI);
+            cr->arc(a.x, a.y - sin(2*M_PI*m_dAnimatorRot)*125, a.r, 0, 2*M_PI);
         else
             cr->arc(a.x, a.y, a.r, 0, 2*M_PI);
         cr->fill();
