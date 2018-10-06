@@ -14,9 +14,10 @@ bool CCanvas::Collision(SPoint const & tPoint)
         {
         if ( Distance(a, tPoint) < a.r )
             {
-            m_tCollision.tWhere = tPoint;
-            m_tCollision.eWhat  = SCollision::EWhat::Fleck;
-            m_tCollision.nIndex = i;
+            m_tCollision.tWhere  = tPoint;
+            m_tCollision.tOffset = tPoint - a;
+            m_tCollision.eWhat   = SCollision::EWhat::Fleck;
+            m_tCollision.nIndex  = i;
             return std::move(true);
             }
         ++i;
@@ -28,8 +29,6 @@ bool CCanvas::Collision(SPoint const & tPoint)
 bool CCanvas::on_button_press_event(GdkEventButton *event)
     {
     m_tMouseColor = { .0,.0,.9 };
-
-//    if( (event->type == GDK_BUTTON_PRESS) && (event->button == 3) )
     if (event->type == GDK_BUTTON_PRESS )
         {
         m_tEventPress = *event;
@@ -45,8 +44,6 @@ bool CCanvas::on_button_press_event(GdkEventButton *event)
         switch ( m_tCollision.eWhat  )
             {
             case SCollision::EWhat::Fleck:
-                m_tMoveOffset = m_vFlecken[m_tCollision.nIndex]
-                              - m_tEventPress;
                 break;
             case SCollision::EWhat::Line:
                 break;
@@ -61,8 +58,8 @@ bool CCanvas::on_button_press_event(GdkEventButton *event)
     
 bool CCanvas::on_motion_notify_event(GdkEventMotion *event)
     {
-    m_tMousePos = *event - m_tShift;
-    
+    m_tMousePos = (*event - m_tShift)/m_dScale;
+
     if ( event->type & GDK_MOTION_NOTIFY )
         if ( event->state & GDK_BUTTON3_MASK )
             {
@@ -70,8 +67,7 @@ bool CCanvas::on_motion_notify_event(GdkEventMotion *event)
                 {
                 case SCollision::EWhat::Fleck:
                     m_vFlecken[m_tCollision.nIndex] = m_tMousePos
-                                                    + m_tMoveOffset
-                                                    + m_tShift;
+                                                    - m_tCollision.tOffset;
                     break;
                 case SCollision::EWhat::Line:
                     break;
@@ -95,7 +91,7 @@ bool CCanvas::on_button_release_event(GdkEventButton* event)
         if ( event->state & GDK_BUTTON1_MASK )
             {
             m_tMouseColor = { .5,.5,.5 };
-            m_vMouseTrail.emplace_back( SPoint{ *event - m_tShift } );
+            m_vMouseTrail.emplace_back( (*event - m_tShift)/m_dScale );
             }
         if ( event->state & GDK_BUTTON3_MASK )
             {
@@ -112,31 +108,37 @@ bool CCanvas::on_scroll_event(GdkEventScroll *event)
     else
         m_tMouseColor = { .0,.9,.0 };
 
+    SPoint const p0{ (*event - m_tShift)/m_dScale };
+    m_dScale *= (event->delta_y>0)?.9:1.1; if (m_dScale<.01) m_dScale=.01;
+    SPoint const p1{ (*event - m_tShift)/m_dScale };
+    m_tShift -= (p0-p1)*m_dScale;
+
     queue_draw();
     return true;
     }
 
 bool CCanvas::on_draw(Cairo::RefPtr<Cairo::Context> const & cr)
     {
-    auto const all   { get_allocation() };
-    auto const tSize { SPoint { (double)all.get_width(),
-                                (double)all.get_height() } };
+    auto const all        { get_allocation() };
+    auto const m_tCtxSize { SPoint { (double)all.get_width(),
+                                     (double)all.get_height() } };
 
-    static auto tHome{ SPoint { tSize }/2 };
+    static auto tHome{ SPoint { m_tCtxSize }/2 };
 
     if ( m_bShiftInit )
         {
-        tHome = m_tShift = tSize/2;
+        tHome = m_tShift = m_tCtxSize/2;
         m_bShiftInit = false;
         }
-    auto const tSizeHalf{tSize/2};
+    auto const tSizeHalf{m_tCtxSize/2};
     if ( tHome != tSizeHalf )
         {
         m_tShift -= tHome - tSizeHalf; tHome = tSizeHalf;
         }
 
     Cairo::Matrix matrix(1.0, 0.0, 0.0, 1.0, 0.0, 0.0);
-    matrix.translate(m_tShift.x, m_tShift.y);
+    matrix.scale(m_dScale,m_dScale);
+    matrix.translate(m_tShift.x/m_dScale, m_tShift.y/m_dScale);
 
     cr->transform(matrix);
 
