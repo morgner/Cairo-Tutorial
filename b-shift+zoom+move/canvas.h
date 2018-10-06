@@ -149,7 +149,6 @@ class CCanvas : public Gtk::DrawingArea
         VFlecken m_vFlecken { {30,30,20}, {300,300,50}, {500,200,40},
                               {40,50,25}, {240,320,30}, {580,270,45} };
 
-        SPoint   m_tMoveOffset{.0,.0};
         struct SCollision
             {
             SPoint tWhere  { .0,.0 };
