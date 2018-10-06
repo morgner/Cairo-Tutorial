@@ -170,8 +170,18 @@ bool CCanvas::on_draw(Cairo::RefPtr<Cairo::Context> const & cr)
             cr->set_source_rgb( .9, .0, .0 );
         else
             cr->set_source_rgb( .0, .9, .0 );
-        cr->arc(a.x, a.y, a.r, 0, 2*M_PI);
+        if ( i == 1 )
+            cr->arc(a.x + 250*m_dAnimator, a.y, a.r, 0, 2*M_PI);
+        else if ( i == 2 )
+            cr->arc(a.x, a.y - 250*m_dAnimator, a.r, 0, 2*M_PI);
+        else
+            cr->arc(a.x, a.y, a.r, 0, 2*M_PI);
         cr->fill();
+        
+        cr->set_source_rgb( .0, .2, .0 );
+        cr->set_line_width(1);
+        cr->arc(a.x, a.y, a.r, 0, 2*M_PI);
+        cr->stroke();
         }
 
     

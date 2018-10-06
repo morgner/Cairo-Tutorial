@@ -119,9 +119,12 @@ class CCanvas : public Gtk::DrawingArea
             add_events(Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK);
             add_events(Gdk::BUTTON1_MOTION_MASK | Gdk::BUTTON_PRESS_MASK | Gdk::POINTER_MOTION_MASK);
             add_events(Gdk::KEY_PRESS_MASK | Gdk::KEY_RELEASE_MASK);
+
+            m_fSlot       = sigc::bind(sigc::mem_fun(*this, &CCanvas::AnimateBi), 0);
+            m_fConnection = Glib::signal_timeout().connect(m_fSlot, 40);
             }
 
-        virtual ~CCanvas() { };
+        virtual ~CCanvas() { m_fConnection.disconnect(); };
 
     protected:
         // Override default signal handler:
@@ -162,5 +165,43 @@ class CCanvas : public Gtk::DrawingArea
             int nIndex {0};	// O: L1, L2, L3
             int nSubIx {0};	// L: P1, PM, P2
             } m_tCollision;
+
+        // animation
+        bool             m_bAnimate{true};
+        bool             m_bAnimateLeft{true};
+
+        // animation clock
+        double           m_dAnimator{0}; // $m_tAnimator animation parameter
+        double           m_dAnimStep{0}; // intermediate animation parameter
+        sigc::slot<bool> m_fSlot;
+        sigc::connection m_fConnection;
+
+        double           m_dAnimate   {0.0125}; // animation steps width
+        double const     m_dAnimateMax{0.0250}; // maximal animation step width
+        double const     m_dAnimateMin{0.0025}; // minimal animation step width
+
+        bool Animate(int c)
+            {
+            if (!m_bAnimate) return true;
+            if (m_bAnimateLeft)
+                m_dAnimator = (m_dAnimator <=  m_dAnimate) ? 1 : m_dAnimator-m_dAnimate;
+                else
+                m_dAnimator = (m_dAnimator >=1-m_dAnimate) ? 0 : m_dAnimator+m_dAnimate;
+            queue_draw();
+            return true;
+            }
+
+        bool AnimateBi(int c)
+            {
+            if (!m_bAnimate) return true;
+            if (m_bAnimateLeft)
+                m_dAnimator = m_dAnimator-m_dAnimate;
+                else
+                m_dAnimator = m_dAnimator+m_dAnimate;
+            if (m_dAnimator <= 0) m_bAnimateLeft = false;
+            if (m_dAnimator >= 1) m_bAnimateLeft = true;
+            queue_draw();
+            return true;
+            }
 
     }; // CCanvas
