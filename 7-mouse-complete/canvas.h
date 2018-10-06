@@ -18,7 +18,7 @@ struct SColor
     double r{0},g{0},b{0};
     };
 
-using VPoints = std::vector<SPoint>;
+using VPoints  = std::vector<SPoint>;
 
 class CCanvas : public Gtk::DrawingArea
     {
@@ -41,8 +41,9 @@ class CCanvas : public Gtk::DrawingArea
         bool on_motion_notify_event(GdkEventMotion *event) override;
         bool on_button_release_event(GdkEventButton* release_event) override;
         
-        SPoint  m_tMousePos;
-        SColor  m_tMouseColor{ .5,.5,.5 };
-        VPoints m_vMouseTrail;
+        SPoint   m_tMousePos;
+        SColor   m_tMouseColor{ .5,.5,.5 };
+        VPoints  m_vMouseTrail;
+
 
     }; // CCanvas

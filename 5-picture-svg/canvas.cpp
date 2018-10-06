@@ -1,6 +1,10 @@
 #include "canvas.h"
 
 
+
+
+
+
 bool CCanvas::on_draw(Cairo::RefPtr<Cairo::Context> const & cr)
     {
     Gtk::Allocation allocation{ get_allocation() };
@@ -16,11 +20,11 @@ bool CCanvas::on_draw(Cairo::RefPtr<Cairo::Context> const & cr)
     cr->stroke();
 
     // circle gray
-    cr->set_source_rgb(.7,.7,.0);
+    cr->set_source_rgb(.7,.7,.7);
     cr->arc(width/2, height/2, 100, 0, 2*M_PI);
     cr->fill();
 
-    // picture png quadratic
+    // picture svg quadratic
     // - load picture
     static Glib::RefPtr<Gdk::Pixbuf> const image  = Gdk::Pixbuf::create_from_file("../CairoTut.svg");
     // - scale picture to destination size

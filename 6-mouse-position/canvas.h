@@ -25,6 +25,7 @@ class CCanvas : public Gtk::DrawingArea
         bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
         bool on_motion_notify_event(GdkEventMotion *event) override;
         
-        SPoint m_tMousePos;
+        SPoint   m_tMousePos;
+
 
     }; // CCanvas

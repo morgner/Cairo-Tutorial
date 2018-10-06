@@ -1,5 +1,10 @@
 #include "canvas.h"
 
+
+
+
+
+
 bool CCanvas::on_motion_notify_event(GdkEventMotion *event)
     {
     m_tMousePos = SPoint{*event};

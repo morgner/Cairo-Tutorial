@@ -4,9 +4,10 @@
 class CCanvas : public Gtk::DrawingArea
     {
     public:
-    CCanvas()
-        {
-        }
+        CCanvas()
+            {
+
+            }
 
         virtual ~CCanvas() { };
 

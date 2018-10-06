@@ -1,6 +1,10 @@
 #include "canvas.h"
 
 
+
+
+
+
 bool CCanvas::on_draw(Cairo::RefPtr<Cairo::Context> const & cr)
     {
     Gtk::Allocation allocation{ get_allocation() };

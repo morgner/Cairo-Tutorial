@@ -211,5 +211,4 @@ class CCanvas : public Gtk::DrawingArea
             queue_draw();
             return true;
             }
-
     }; // CCanvas

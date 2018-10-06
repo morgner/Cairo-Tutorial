@@ -1,6 +1,10 @@
 #include "canvas.h"
 
 
+
+
+
+
 bool CCanvas::on_draw(Cairo::RefPtr<Cairo::Context> const & cr)
     {
     cr->set_source_rgb(1.,.5,.0);

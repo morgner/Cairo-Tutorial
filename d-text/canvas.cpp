@@ -20,9 +20,9 @@ SPoint draw_text(Cairo::RefPtr<Cairo::Context> const & cr,
     auto layout = w.create_pango_layout(crsText);
 
     layout->set_font_description(font);
-    int iWidth;
-    int iHeight;
-    SPoint tSize;
+    int iWidth {0};
+    int iHeight{0};
+    SPoint tSize{.0,.0};
 
     layout->get_pixel_size(iWidth, iHeight);
     tSize = SPoint{iWidth, iHeight};

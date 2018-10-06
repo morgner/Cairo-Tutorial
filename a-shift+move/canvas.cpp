@@ -15,6 +15,7 @@ bool CCanvas::Collision(SPoint const & tPoint)
         if ( Distance(a, tPoint) < a.r )
             {
             m_tCollision.tWhere = tPoint;
+            m_tCollision.tOffset= tPoint - a;
             m_tCollision.eWhat  = SCollision::EWhat::Fleck;
             m_tCollision.nIndex = i;
             return std::move(true);
@@ -28,8 +29,6 @@ bool CCanvas::Collision(SPoint const & tPoint)
 bool CCanvas::on_button_press_event(GdkEventButton *event)
     {
     m_tMouseColor = { .0,.0,.9 };
-
-//    if( (event->type == GDK_BUTTON_PRESS) && (event->button == 3) )
     if (event->type == GDK_BUTTON_PRESS )
         {
         m_tEventPress = *event;
@@ -45,8 +44,6 @@ bool CCanvas::on_button_press_event(GdkEventButton *event)
         switch ( m_tCollision.eWhat  )
             {
             case SCollision::EWhat::Fleck:
-                m_tMoveOffset = m_vFlecken[m_tCollision.nIndex]
-                              - m_tEventPress;
                 break;
             case SCollision::EWhat::Line:
                 break;
@@ -62,7 +59,7 @@ bool CCanvas::on_button_press_event(GdkEventButton *event)
 bool CCanvas::on_motion_notify_event(GdkEventMotion *event)
     {
     m_tMousePos = *event - m_tShift;
-    
+
     if ( event->type & GDK_MOTION_NOTIFY )
         if ( event->state & GDK_BUTTON3_MASK )
             {
@@ -70,8 +67,7 @@ bool CCanvas::on_motion_notify_event(GdkEventMotion *event)
                 {
                 case SCollision::EWhat::Fleck:
                     m_vFlecken[m_tCollision.nIndex] = m_tMousePos
-                                                    + m_tMoveOffset
-                                                    + m_tShift;
+                                                    - m_tCollision.tOffset;
                     break;
                 case SCollision::EWhat::Line:
                     break;
@@ -118,18 +114,18 @@ bool CCanvas::on_scroll_event(GdkEventScroll *event)
 
 bool CCanvas::on_draw(Cairo::RefPtr<Cairo::Context> const & cr)
     {
-    auto const all   { get_allocation() };
-    auto const tSize { SPoint { (double)all.get_width(),
-                                (double)all.get_height() } };
+    auto const all        { get_allocation() };
+    auto const m_tCtxSize { SPoint { (double)all.get_width(),
+                                     (double)all.get_height() } };
 
-    static auto tHome{ SPoint { tSize }/2 };
+    static auto tHome{ SPoint { m_tCtxSize }/2 };
 
     if ( m_bShiftInit )
         {
-        tHome = m_tShift = tSize/2;
+        tHome = m_tShift = m_tCtxSize/2;
         m_bShiftInit = false;
         }
-    auto const tSizeHalf{tSize/2};
+    auto const tSizeHalf{m_tCtxSize/2};
     if ( tHome != tSizeHalf )
         {
         m_tShift -= tHome - tSizeHalf; tHome = tSizeHalf;

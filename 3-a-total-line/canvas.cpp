@@ -1,6 +1,10 @@
 #include "canvas.h"
 
 
+
+
+
+
 bool CCanvas::on_draw(Cairo::RefPtr<Cairo::Context> const & cr)
     {
     Gtk::Allocation allocation{ get_allocation() };
@@ -10,10 +14,12 @@ bool CCanvas::on_draw(Cairo::RefPtr<Cairo::Context> const & cr)
     cr->set_source_rgb(1.,.5,.0);
     cr->set_line_width(3);
 
+    // line crossing the whole window
     cr->move_to(    0,      0);
     cr->line_to(width, height);
     cr->stroke();
 
+    // circle gray
     cr->set_source_rgb(.7,.7,.7);
     cr->arc(width/2, height/2, 100, 0, 2*M_PI);
     cr->fill();

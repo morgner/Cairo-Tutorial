@@ -14,10 +14,10 @@ bool CCanvas::Collision(SPoint const & tPoint)
         {
         if ( Distance(a, tPoint) < a.r )
             {
-            m_tCollision.tWhere  = tPoint;
-            m_tCollision.tOffset = tPoint - a;
-            m_tCollision.eWhat   = SCollision::EWhat::Fleck;
-            m_tCollision.nIndex  = i;
+            m_tCollision.tWhere = tPoint;
+            m_tCollision.tOffset= tPoint - a;
+            m_tCollision.eWhat  = SCollision::EWhat::Fleck;
+            m_tCollision.nIndex = i;
             return std::move(true);
             }
         ++i;

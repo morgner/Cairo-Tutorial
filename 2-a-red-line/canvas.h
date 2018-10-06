@@ -4,11 +4,12 @@
 class CCanvas : public Gtk::DrawingArea
     {
     public:
-    CCanvas()
-        {
-        }
+        CCanvas()
+            {
 
-    virtual ~CCanvas() { };
+            }
+
+        virtual ~CCanvas() { };
 
     protected:
         // Override default signal handler:

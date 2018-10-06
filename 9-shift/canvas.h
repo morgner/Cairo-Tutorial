@@ -77,6 +77,7 @@ template<typename P>
         return sqrt( pow((a.x-b.x),2) + pow((a.y-b.y),2) );
         }
 
+
 class CCanvas : public Gtk::DrawingArea
     {
     public:
@@ -100,10 +101,11 @@ class CCanvas : public Gtk::DrawingArea
 
         int Collision(SPoint const & tPoint);
         
-        bool     m_bShiftInit { true };
-        SPoint   m_tShift { .0,.0 };
-        SPoint   m_tEventPress { .0,.0 };
-        SPoint   m_tShiftStart { .0,.0 };
+        bool     m_bShiftInit   { true };
+        SPoint   m_tShift       { .0,.0 };
+        SPoint   m_tEventPress  { .0,.0 };
+
+        SPoint   m_tShiftStart  { .0,.0 };
 
        
         SPoint   m_tMousePos;

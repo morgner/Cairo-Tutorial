@@ -135,7 +135,6 @@ class CCanvas : public Gtk::DrawingArea
         
         SPoint   m_tCtxSize     { .0,.0 };
         double   m_dScale       { 1.0 };
-        
         bool     m_bShiftInit   { true };
         SPoint   m_tShift       { .0,.0 };
         SPoint   m_tEventPress  { .0,.0 };
@@ -151,8 +150,8 @@ class CCanvas : public Gtk::DrawingArea
 
         struct SCollision
             {
-            SPoint tWhere  { .0,.0 };
-            SPoint tOffset { .0,.0 };
+            SPoint tWhere { .0,.0 };
+            SPoint tOffset{ .0,.0 };
             enum class EWhat
                 {
                 none,       // there was no collision
