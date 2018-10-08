@@ -100,6 +100,7 @@ bool CCanvas::on_motion_notify_event(GdkEventMotion *event)
     if ( m_oButtonPressed > "") return true;
     
     if ( event->type & GDK_MOTION_NOTIFY )
+        {
         if ( event->state & GDK_BUTTON3_MASK )
             {
             switch ( m_tCollision.eWhat  )
@@ -119,7 +120,7 @@ bool CCanvas::on_motion_notify_event(GdkEventMotion *event)
             {
             auto const bCol { Collision(m_tMousePos) };
             }
-
+        }
     queue_draw();
     return true;
     }
