@@ -1,4 +1,4 @@
-#include "canvas.h"
+#include "canvas.h" 
 #include <pangomm/fontdescription.h>
 
 
@@ -130,21 +130,23 @@ bool CCanvas::on_button_release_event(GdkEventButton* event)
     {
     if ( m_oButtonPressed.size() > 0 )
         {
-        m_oButtonPressed = "";
-        for ( auto const & a:m_voButtons )
-            if ( a.Collision(*event) )
-                {
-                m_oButtonPressed = a.sFunct;
-                break;
-                }
-        if ( m_oButtonPressed == "0" ) { s="A"; }
-        if ( m_oButtonPressed == "1" ) { s="B"; }
-        if ( m_oButtonPressed == "2" ) { s="C"; }
-        if ( m_oButtonPressed == "3" ) { s="D"; }
-        if ( m_oButtonPressed == "4" ) { s="E"; }
-        if ( m_oButtonPressed == "5" ) { s="F"; }
-        if ( m_oButtonPressed == "6" ) { s="G"; }
-
+        if ( event->state & GDK_BUTTON1_MASK )
+            {
+            m_oButtonPressed = "";
+            for ( auto const & a:m_voButtons )
+                if ( a.Collision(*event) )
+                    {
+                    m_oButtonPressed = a.sFunct;
+                    break;
+                    }
+            if ( m_oButtonPressed == "0" ) { s="A"; }
+            if ( m_oButtonPressed == "1" ) { s="B"; }
+            if ( m_oButtonPressed == "2" ) { s="C"; }
+            if ( m_oButtonPressed == "3" ) { s="D"; }
+            if ( m_oButtonPressed == "4" ) { s="E"; }
+            if ( m_oButtonPressed == "5" ) { s="F"; }
+            if ( m_oButtonPressed == "6" ) { s="G"; }
+            }
         m_oButtonPressed="";
         queue_draw();
         return true;

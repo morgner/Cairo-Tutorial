@@ -121,6 +121,48 @@ using VButtons = std::vector<SButton>;
 using VPoints  = std::vector<SPoint>;
 using VFlecken = std::vector<SFleck>;
 
+// calculation helpers
+
+// angel at triangle point a of triangle a-b-c
+inline double Alpha(double const & a, double const & b, double const & c)
+    {
+    auto cosinus = (pow(b,2)+pow(c,2)-pow(a,2)) / (2*b*c);
+    if ((cosinus<-1)||(cosinus>1))
+	{
+	return 0.0;
+	}
+    return acos( cosinus );
+    }
+
+inline double VectorSlope(SPoint const & a, SPoint const & b)
+    {
+    auto const dba = SPoint{ b.x-a.x, b.y-a.y };
+    double dbax{dba.x};
+    if ( dba.x < 0 && dba.x > -.00001) dbax = -.00001;
+    if ( dba.x > 0 && dba.x <  .00001) dbax =  .00001;
+    auto       sba = atan(dba.y / dbax);
+
+    if      ( (dba.x>0) && (dba.y<0) )
+        sba = -sba;
+    else if ( (dba.x<0) && (dba.y<0) )
+        sba = M_PI - sba;
+    else if ( (dba.x<0) && (dba.y>0) )
+        sba = M_PI - sba;
+    else if ( (dba.x>0) && (dba.y>0) )
+        sba = 2*M_PI - sba;
+
+    return sba;
+    }
+
+inline double VectorDiff(SPoint const & a, SPoint const & b, SPoint const & c)
+    {
+    auto slb = VectorSlope(a,b);
+    auto slc = VectorSlope(a,c);
+    return slc - slb;
+    }
+
+
+
 // the first argument can be anything having the members x and y
 // a Gtk event, a SFleck or whatever
 template<typename P, typename T>
