@@ -195,6 +195,12 @@ inline double VectorDiff(SPoint const & a, SPoint const & b, SPoint const & c)
     return slc - slb;
     }
 
+template<typename P, typename T>
+    double Distance( P const & a, T const & b )
+        {
+        return sqrt( pow((a.x-b.x),2) + pow((a.y-b.y),2) );
+        }
+
 
 
 // drawing primitives
@@ -210,12 +216,6 @@ inline void Color( Cairo::RefPtr<Cairo::Context> const & cr, SColor const & c )
         }
 
 
-
-template<typename P, typename T>
-    double Distance( P const & a, T const & b )
-        {
-        return sqrt( pow((a.x-b.x),2) + pow((a.y-b.y),2) );
-        }
 
 template<typename P>
     void MoveTo(Cairo::RefPtr<Cairo::Context> const & cr, P const & tPoint)
