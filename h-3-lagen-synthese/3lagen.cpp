@@ -35,6 +35,10 @@ bool C3Lagen::MoveObject(CCanvas::SCollision const & tCollision, SPoint const & 
         case CCanvas::SCollision::EWhat::G123:
             Update(SGrundPunkt{pos - tCollision.tOffset}, tCollision.nIndex);
             break;
+
+        case CCanvas::SCollision::EWhat::G:
+//            Update(SGelenkPunkt{pos - tCollision.tOffset}, tCollision.nIndex);
+            break;
         }
 
     return true;
@@ -70,7 +74,7 @@ CCanvas::SCollision C3Lagen::Collision(SPoint const & tPoint)
     int i;
     double const dRCol{9};
     CCanvas::SCollision tCollision;
-    tCollision.eWhat  = CCanvas::SCollision::EWhat::none;
+    tCollision.eWhat = CCanvas::SCollision::EWhat::none;
 
     i = 0;
     for ( auto const & a:m_vEbenen )
@@ -218,19 +222,29 @@ void C3Lagen::Update(SGrundPunkt const & G123, size_t const & i)
     m_vGrundPunkte[i] = G123;
     
     if (m_vPolDreieck.size() < 3) return;
-    SPolPunkt const p12 = m_vPolDreieck[0],
-                    p13 = m_vPolDreieck[1],
-                    p23 = m_vPolDreieck[2];
+    SPolPunkt const & p12 = m_vPolDreieck[0],
+                      p13 = m_vPolDreieck[1],
+                      p23 = m_vPolDreieck[2];
     
     while (m_vGelenkPunkte[i].size() < 4) m_vGelenkPunkte[i].emplace_back(SGelenkPunkt{.0,.0});
     // G123 => G0-G3
-    SGelenkPunkt const G1 = m_vGelenkPunkte[i][1] = PointMirror(G123, {p12, p13});
-    SGelenkPunkt const G2 = m_vGelenkPunkte[i][2] = PointMirror(G123, {p12, p23});
-    SGelenkPunkt const G3 = m_vGelenkPunkte[i][3] = PointMirror(G123, {p13, p23});
+    SGelenkPunkt const & G1 = m_vGelenkPunkte[i][1] = PointMirror(G123, {p12, p13});
+    SGelenkPunkt const & G2 = m_vGelenkPunkte[i][2] = PointMirror(G123, {p12, p23});
+    SGelenkPunkt const & G3 = m_vGelenkPunkte[i][3] = PointMirror(G123, {p13, p23});
     SUmkreis u = Umkreis(G1, G2, G3);
     SGelenkPunkt G0 = m_vGelenkPunkte[i][0] = u.p;
     }
+/*
+void Update(SGelenkPunkt const & A1, size_t const & i)
+    {
+    if (i>0) return;
+    if (m_vGelenkPunkte.size() < 2  ) m_vGelenkPunkte.emplace_back(A1);
+    if (m_vGelenkPunkte.size() < i+1) return;
 
+    m_vGelenkPunkte[0] = A1;
+
+    }
+*/
 void C3Lagen::DrawEbene(CairoCtx cr, SEbene const & e, size_t const & i)
     {
     cr->save();
@@ -255,6 +269,8 @@ void C3Lagen::DrawPoldreieck(CairoCtx cr, SPoint const & pa,
                                           SColor const & bc, 
                                           double const & s)
     {
+    if ( !m_bShowHints ) return;
+    
     LineWidth(cr, {1/s});
     Color(cr, fc, .25 );
     Polygon(cr, pa,pb,pc,pa);
@@ -277,6 +293,7 @@ void C3Lagen::DrawGrundPunkt(CairoCtx cr, SPoint const & m, size_t const & i)
     Circle(cr, m, 8);
     Color (cr, BLACK);
     Ring  (cr, m, 8);
+
     SPoint const pto{.0,-11.3};
     std::string L{"AB"[i]};
     draw_text(cr, m +pto, L + "123" , 1, true);
@@ -284,19 +301,19 @@ void C3Lagen::DrawGrundPunkt(CairoCtx cr, SPoint const & m, size_t const & i)
     cr->restore();
     }
 
-void C3Lagen::DrawGetriebe(CairoCtx cr, double const & ani)
+void C3Lagen::DrawGetriebe(CairoCtx cr, double const & ani, double const & dAni)
     {
     if (m_vGelenkPunkte[0].size() < 4) return;
     if (m_vGelenkPunkte[1].size() < 4) return;
     // G0-G3
-    SGelenkPunkt const A0 = m_vGelenkPunkte[0][0];
-    SGelenkPunkt const A1 = m_vGelenkPunkte[0][1];
-    SGelenkPunkt const A2 = m_vGelenkPunkte[0][2];
-    SGelenkPunkt const A3 = m_vGelenkPunkte[0][3];
-    SGelenkPunkt const B0 = m_vGelenkPunkte[1][0];
-    SGelenkPunkt const B1 = m_vGelenkPunkte[1][1];
-    SGelenkPunkt const B2 = m_vGelenkPunkte[1][2];
-    SGelenkPunkt const B3 = m_vGelenkPunkte[1][3];
+    SGelenkPunkt const & A0 = m_vGelenkPunkte[0][0];
+    SGelenkPunkt const & A1 = m_vGelenkPunkte[0][1];
+    SGelenkPunkt const & A2 = m_vGelenkPunkte[0][2];
+    SGelenkPunkt const & A3 = m_vGelenkPunkte[0][3];
+    SGelenkPunkt const & B0 = m_vGelenkPunkte[1][0];
+    SGelenkPunkt const & B1 = m_vGelenkPunkte[1][1];
+    SGelenkPunkt const & B2 = m_vGelenkPunkte[1][2];
+    SGelenkPunkt const & B3 = m_vGelenkPunkte[1][3];
 
     auto const GL = Distance( A0, B0 );
     auto const AL = Distance( A0, A1 );
@@ -310,6 +327,9 @@ void C3Lagen::DrawGetriebe(CairoCtx cr, double const & ani)
     auto const A1m = SPoint{A0.x+AL*S, A0.y+AL*C};
     auto const  d = Distance( A1m , B0 );
 
+    m_nSplit = 0;
+    if (     BL+CL  < d ) { m_nSplit = D2LONG;  };
+    if ( abs(BL-CL) > d ) { m_nSplit = D2SHORT; };
 
     double const lw{7};
     LineWidth(cr, {lw});
@@ -317,23 +337,23 @@ void C3Lagen::DrawGetriebe(CairoCtx cr, double const & ani)
 
     auto const epsi = VectorSlope(A1m, B0) -M_PI/2;
 
-    auto const beta = Alpha(BL,CL,d); // 143,  86, Distance( A1m , B0 )  g:58, a:43
-    auto const gama = Alpha(CL,BL,d); //  86, 143, Distance( A1m , B0 )
+    auto const beta = (m_nSplit != 0) ? 0 : Alpha(BL,CL,d); // 143,  86, Distance( A1m , B0 )  g:58, a:43
+    auto const gama = (m_nSplit != 0) ? 0 : Alpha(CL,BL,d); //  86, 143, Distance( A1m , B0 )
 
 //	std::cout << "e: " << epsi/M_PI*180 << ", b: " << beta/M_PI*180 << ", g: " << gama/M_PI*180 << '\n';
 
-/*
+
     static bool zero {false};
     if ( beta == 0 && gama == 0 )
         {
-        if ( !zero ) m_bDirectionLeft = !m_bDirectionLeft;
+        if ( !zero ) m_bAnimReverse = !m_bAnimReverse;
         zero = true;
         }
     else
         {
         zero = false;
         }
-*/
+
     SPoint B1m;
     SPoint pab;
     
@@ -355,10 +375,17 @@ void C3Lagen::DrawGetriebe(CairoCtx cr, double const & ani)
 
     LineWidth(cr, {lw+2});
     Color(cr, WHITE);
-    if ( d > (BL+CL) ) Color(cr, BLACK);
-
-    if (m_bShowBlink)
+    if ( m_nSplit != D_OK )
         {
+        Color(cr, BLACK);
+        Line(cr, A0, A1m);
+        if ( m_nSplit == D2LONG  ) { Color(cr, YELLOW); };
+        if ( m_nSplit == D2SHORT ) { Color(cr, CYAN  ); };
+        Line(cr, A1m, B0);
+        }
+    else if (m_bShowBlink)
+        {
+        Color(cr, WHITE);
         Line(cr, A0, A1m);
         Line(cr, A1m, pab);
         Line(cr, B0, B1m);
@@ -388,13 +415,17 @@ void C3Lagen::DrawGetriebe(CairoCtx cr, double const & ani)
     else
         cr->set_source_rgb(0,0,0);
 
-
-    m_bCSplit = ( d > (BL+CL) );
-    if ( m_bCSplit ) Color(cr, RED);
-
     LineWidth(cr, {lw});
 
-    if (m_bShowBlink)
+    if ( m_nSplit != D_OK )
+        {
+        Color(cr, BLACK);
+        Line(cr, A0, A1m);
+        if ( m_nSplit == D2LONG  ) { Color(cr, YELLOW); };
+        if ( m_nSplit == D2SHORT ) { Color(cr, CYAN  ); };
+        Line(cr, A1m, B0);
+        }
+    else if (m_bShowBlink)
         {
         Line(cr, A0,  A1m);
         Line(cr, A1m, pab);
@@ -434,7 +465,7 @@ void C3Lagen::DrawGetriebe(CairoCtx cr, double const & ani)
 
     SPoint const be1{B1m.x+lve*sin(wg+dw-M_PI/2), B1m.y+lve*cos(wg+dw-M_PI/2)};
     SPoint const be2{be1.x+le*sin(wg+dw+dwe+M_PI/2), be1.y+le*cos(wg+dw+dwe+M_PI/2)};
-    Color(cr, {0,1,1}, .4);
+    Color(cr, CYAN, .4);
     Polygon(cr, A1m, be1, B1m);
 
     Color(cr, {.25,.75,.75}, .75);
@@ -444,16 +475,19 @@ void C3Lagen::DrawGetriebe(CairoCtx cr, double const & ani)
     cr->set_source_rgba(.99,.2,.2,.5);
     LineWidth(cr, {5.5});
     Line(cr, be1, be2);
-/*
+    
+    DrawGehausePunkt(cr, A0, "A0");
+    DrawGehausePunkt(cr, B0, "B0");
 
+    // traces
     if ( m_bWithTraces )
         {
         if (360*m_tAnimStep+1 > m_vSpurE1.size() && !zero)
             {
-            m_vSpurE1.emplace_back(SPointT{be1.x,be1.y,g_bCSplit});
-            m_vSpurE2.emplace_back(SPointT{be2.x,be2.y,g_bCSplit});
+            m_vSpurE1.emplace_back(SPointT{be1.x,be1.y,m_nSplit!=D_OK});
+            m_vSpurE2.emplace_back(SPointT{be2.x,be2.y,m_nSplit!=D_OK});
             }
-        if (m_tAnimStep<=1.1) m_tAnimStep += m_dAnimate;
+        if (m_tAnimStep<=1.1) m_tAnimStep += dAni; // m_dAnimate;
         cr->set_source_rgb(0,0,0);
 
         cr->set_line_width(2);
@@ -461,51 +495,53 @@ void C3Lagen::DrawGetriebe(CairoCtx cr, double const & ani)
         if (m_vSpurE1.size())
             {
             cr->move_to(m_vSpurE1[0].x, m_vSpurE1[0].y);
-            b = m_vSpurE1[0].bCSplit;
+            b = m_vSpurE1[0].nSplit!=D_OK;
             }
         for (auto const & a:m_vSpurE1)
             {
-            if (b) cr->set_source_rgb(1,0,0); else cr->set_source_rgb(0,0,0);
-            if ( a.bCSplit != b )
+            if (b) Color(cr, RED); else Color(cr, BLACK);
+            if ( a.nSplit!=D_OK != b )
                 {
                 cr->line_to(a.x, a.y);
                 cr->stroke();
                 }
             cr->line_to(a.x, a.y);
-            b = a.bCSplit;
+            b = a.nSplit!=D_OK;
             }
         cr->stroke();
 
         if (m_vSpurE2.size())
             {
             cr->move_to(m_vSpurE2[0].x, m_vSpurE2[0].y);
-            b = m_vSpurE2[0].bCSplit;
+            b = m_vSpurE2[0].nSplit!=D_OK;
             }
         for (auto const & a:m_vSpurE2)
             {
-            if (b) cr->set_source_rgb(1,0,0); else cr->set_source_rgb(0,0,0);
-            if ( a.bCSplit != b )
+            if (b) Color(cr, RED); else Color(cr, BLACK);
+            if ( a.nSplit!=D_OK != b )
                 {
                 cr->line_to(a.x, a.y);
                 cr->stroke();
                 }
             cr->line_to(a.x, a.y);
-            b = a.bCSplit;
+            b = a.nSplit!=D_OK;
             }
         cr->stroke();
         }
-*/
+
     }
 
 void C3Lagen::DrawGelenkViereck(CairoCtx cr, size_t const & i)
     {
+    if ( !m_bShowHints ) return;
+    
     if (i > 1) return;
     if (m_vGelenkPunkte[i].size() < 4) return;
     // G0-G3
-    SGelenkPunkt const G0 = m_vGelenkPunkte[i][0];
-    SGelenkPunkt const G1 = m_vGelenkPunkte[i][1];
-    SGelenkPunkt const G2 = m_vGelenkPunkte[i][2];
-    SGelenkPunkt const G3 = m_vGelenkPunkte[i][3];
+    SGelenkPunkt const & G0 = m_vGelenkPunkte[i][0];
+    SGelenkPunkt const & G1 = m_vGelenkPunkte[i][1];
+    SGelenkPunkt const & G2 = m_vGelenkPunkte[i][2];
+    SGelenkPunkt const & G3 = m_vGelenkPunkte[i][3];
 
     if (i==0)
         if (m_vGelenkPunkte[1].size() == 4)

@@ -18,23 +18,36 @@ using VGelenkPunkte  = std::vector<SGelenkPunkt>;
 using VPolDreieck    = std::vector<SPolPunkt>;
 using VEbenen        = std::vector<SEbene>;
 
-using VSpur          = std::vector<SPoint>;
+
+int constexpr D_OK    {0};
+int constexpr D2LONG  {1};
+int constexpr D2SHORT {2};
+struct SPointT
+    {
+    double x{.0}, y{.0};
+    int    nSplit{D_OK};
+    };
+using VSpur          = std::vector<SPointT>;
+
 
 struct C3Lagen
     {
+    protected:
+
+        int  m_nSplit{D_OK};
+
     public:
     
-        bool m_bWithTraces   { true };   
+        bool m_bWithTraces   { false };
         bool m_bDurchschlagen{ false };
-        bool m_bRotate       { false };       
-        bool m_bShowText     { true };     
-        bool m_bShowHints    { true };    
-        bool m_bShowBlink    { true };    
-        bool m_bShowMouse    { true };    
+        bool m_bRotate       { false };
+        bool m_bShowText     { true  };
+        bool m_bShowHints    { true  };
+        bool m_bShowBlink    { true  };
+        bool m_bShowMouse    { true  };
 
         double m_tAnimStep   { 0.0 };
-
-        bool m_bCSplit;
+        bool   m_bAnimReverse{ false };
 
         void TraceReset()    { m_vSpurE1.clear(); m_vSpurE2.clear(); m_tAnimStep = 0; }
         void TraceInvrt()    { m_bWithTraces    = !m_bWithTraces; TraceReset(); }
@@ -59,9 +72,9 @@ struct C3Lagen
     bool MoveObject(CCanvas::SCollision const & tCollision, SPoint const & pos);
 
 
-    void Update(SEbene      const & e, size_t const & i);
-    void Update(SGrundPunkt const & e, size_t const & i);
-
+    void Update(SEbene       const & e, size_t const & i);
+    void Update(SGrundPunkt  const & e, size_t const & i);
+//    void Update(SGelenkPunkt const & e, size_t const & i);
 
     bool CalcGrundPunktDerivates(CairoCtx cr, SPoint      const & gp, 
                                               VPolDreieck const & pd );
@@ -79,7 +92,7 @@ struct C3Lagen
     void DrawGelenkViereck(CairoCtx cr, size_t const & i);
     void DrawGehausePunkt (CairoCtx cr, SGehausePunkt const & G0,
                                        std::string   const & t);
-    void DrawGetriebe(CairoCtx cr, double const & ani);
+    void DrawGetriebe(CairoCtx cr, double const & ani, double const & dAni);
 
     }; // struct C3Lagen
 

@@ -166,7 +166,7 @@ bool CCanvas::on_button_release_event(GdkEventButton* event)
             if ( m_oButtonPressed == "0" )        AnimateHlt(); 
             if ( m_oButtonPressed == "1" )        AnimateAdd(); 
             if ( m_oButtonPressed == "2" )        AnimateSub(); 
-            if ( m_oButtonPressed == "3" )        AnimateRev();
+            if ( m_oButtonPressed == "3" ) {      AnimateRev(); g_o3LS.m_bAnimReverse = m_bAnimateLeftUst; }
             if ( m_oButtonPressed == "4" ) g_o3LS.TraceReset();  
             if ( m_oButtonPressed == "5" ) g_o3LS.TraceInvrt();
             if ( m_oButtonPressed == "6" ) g_o3LS.Durchschlagen();
@@ -268,7 +268,8 @@ bool CCanvas::on_draw(CairoCtx cr)
 
 
     g_o3LS.Show(cr, m_dScale);
-    g_o3LS.DrawGetriebe(cr, m_dAnimatorUst);
+    g_o3LS.DrawGetriebe(cr, m_dAnimatorUst, m_dAnimate);
+    m_bAnimateLeftUst = g_o3LS.m_bAnimReverse;
     
     if (m_tCollision.eWhat != SCollision::EWhat::none)
         {

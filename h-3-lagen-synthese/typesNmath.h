@@ -129,14 +129,21 @@ using VButtons = std::vector<SButton>;
 using VPoints  = std::vector<SPoint>;
 
 
-SColor constexpr BLACK {0,0,0};
-SColor constexpr RED   {1,0,0};
-SColor constexpr GREEN {0,1,0};
-SColor constexpr BLUE  {0,0,1};
-SColor constexpr YELLOW{1,1,0};
-SColor constexpr WHITE {1,1,1};
-
-SColor constexpr GRAY{.6,.6,.6};
+SColor constexpr BLACK      {.0,.0,.0};
+SColor constexpr DARKRED    {.6,.0,.0};
+SColor constexpr DARKGREEN  {.0,.6,.0};
+SColor constexpr DARKBLUE   {.0,.0,.6};
+SColor constexpr DARKCYAN   {.0,.6,.6};
+SColor constexpr DARKMAGENTA{.6,.0,.6};
+SColor constexpr DARKYELLOW {.6,.6,.0};
+SColor constexpr GRAY       {.6,.6,.6};
+SColor constexpr RED        {1,0,0};
+SColor constexpr GREEN      {0,1,0};
+SColor constexpr BLUE       {0,0,1};
+SColor constexpr CYAN       {0,1,1};
+SColor constexpr MAGENTA    {1,0,1};
+SColor constexpr YELLOW     {1,1,0};
+SColor constexpr WHITE      {1,1,1};
 
 
 // calculation helpers

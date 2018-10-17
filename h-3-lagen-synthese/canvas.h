@@ -9,33 +9,6 @@
 
 
 
-struct SFleck
-    {
-    double x{0}, y{0}, r{0};
-    template<typename P>
-        SFleck operator -= (P const & p)
-            {
-            x -= p.x;
-            y -= p.y;
-            return *this;
-            }
-    template<typename P>
-        SFleck operator += (P const & p)
-            {
-            x += p.x;
-            y += p.y;
-            return *this;
-            }
-    template<typename P>
-        SFleck operator = (P const & p)
-            {
-            x = p.x;
-            y = p.y;
-            return *this;
-            }
-   };
-
-using VFlecken  = std::vector<SFleck>;
 
 using CairoCtx = Cairo::RefPtr<Cairo::Context> const &;
 
@@ -235,8 +208,6 @@ class CCanvas : public Gtk::DrawingArea
        
         SPoint   m_tMousePos;
 
-        VFlecken m_vFlecken { {30,30,20}, {300,300,50}, {500,200,40},
-                              {40,50,25}, {240,320,30}, {580,270,45} };
     public:
     
         struct SCollision
