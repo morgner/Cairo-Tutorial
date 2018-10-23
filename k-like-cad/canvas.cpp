@@ -12,68 +12,141 @@
 
 
 
+
 bool CCanvas::Collision(SPoint const & tPoint)
     {
-    CCanvas::SCollision tCollision;
-    m_tCollision.eWhat = CCanvas::SCollision::EWhat::none;
-    m_tCollision.d = 1e9;
-    
-    int i = 0;
-    for ( auto const & a:m_vDrawing)
+/*
+    double  dDist   {  1e9  };
+    SPoint  tWhere  { .0,.0 };
+    SPoint  tOffset { .0,.0 };
+    bool    bForcePointer { false };
+    SLine   tLine   {{0,0},{1,1}};
+    double  dAngle  { 1e9 };
+*/
+    int i;
+//    if ( m_bButtonDown )
         {
-        if ( double d = Distance(a.a, tPoint); d < m_tCollision.d )
-            {
-            m_tCollision.d       = d;
-            m_tCollision.nIndex  = i;
-            m_tCollision.nSubIx  = 0;
-            m_tCollision.tWhere  = a.a;
-            m_tCollision.tOffset = tPoint - a.a;
-            }
-        if ( double d = Distance(a.b, tPoint); d < m_tCollision.d )
-            {
-            m_tCollision.d       = d;
-            m_tCollision.nIndex  = i;
-            m_tCollision.nSubIx  = 2;
-            m_tCollision.tWhere  = a.b;
-            m_tCollision.tOffset = tPoint - a.b;
-            }
-        ++i;
-        }
+        m_vHints.clear();
+        SHint   tHint;
 
-    if ( m_tCollision.d < 1e9 )
-        {
-        m_tCollision.eWhat = CCanvas::SCollision::EWhat::Element;
-        }
+        // Point,       // nearest line point a,m,b
 
-    if ( m_bButtonDown )
-        {
-        double  dDmin{1e9};
-        int i = 0;
+        tHint.dDist = 1e9;
+        tHint.eHint = SHint::EHint::none;
+        i = 0;
         for ( auto const & a:m_vDrawing)
             {
-            
-            if ( double dW = abs(VectorAngleDiff(a, {m_oStartPoint, m_tMousePos}) ); dW < .1 || abs(dW-M_PI) < .1 )
+            if ( double d = Distance(a.a, tPoint); d < tHint.dDist )
                 {
-                SPoint iS = Intersection(a, SLine{{m_tMousePos.x,
-                                                   m_tMousePos.y}, 
-                                                  {m_tMousePos.x+sin(dW+M_PI/2)*100, 
-                                                   m_tMousePos.y+cos(dW+M_PI/2)*100}} );
+                tHint.dDist   = d;
+                tHint.tWhere  = a.a;
+                tHint.tOffset = tPoint - a.a;
+                tHint.nIndex  = i;
+                tHint.nSubIx  = 0;
+                tHint.eHint   = SHint::EHint::Point;
+                tHint.bForcePointer = true;
+                }
+            if ( double d = Distance((a.a+a.b)/2, tPoint); d < tHint.dDist )
+                {
+                tHint.dDist   = d;
+                tHint.tWhere  = (a.a+a.b)/2;
+                tHint.tOffset = tPoint - (a.a+a.b)/2;
+                tHint.nIndex  = i;
+                tHint.nSubIx  = 1;
+                tHint.eHint   = SHint::EHint::Point;
+                tHint.bForcePointer = true;
+                }
+            if ( double d = Distance(a.b, tPoint); d < tHint.dDist )
+                {
+                tHint.dDist   = d;
+                tHint.tWhere  = a.b;
+                tHint.tOffset = tPoint - a.b;
+                tHint.nIndex  = i;
+                tHint.nSubIx  = 2;
+                tHint.eHint   = SHint::EHint::Point;
+                tHint.bForcePointer = true;
+                }
+            ++i;
+            }
+        if ( tHint.eHint == SHint::EHint::Point ) m_vHints.emplace_back(tHint);
 
-                if ( double dD = Distance(m_tMousePos, iS); dD < dDmin )
+        // Perpendicle, // perp. line to the line on starpoint
+
+
+
+        // Close
+
+        if ( tHint.eHint == SHint::EHint::Point && !m_bCloseLine && m_bButtonDown )
+            {
+            if ( Distance(m_oStartPoint, tPoint) > 20 &&
+                 Distance(tHint.tWhere,  tPoint) < 20 )
+                {
+                auto const & a = m_vDrawing[tHint.nIndex];
+                double dW = VectorSlope(a.a, a.b);
+
+                SPoint iS = Intersection(a, SLine{ m_oStartPoint,
+                                                  {m_oStartPoint.x+sin(dW)*100, 
+                                                   m_oStartPoint.y+cos(dW)*100}} );
+
+                double dD = Distance(m_oStartPoint, iS);
+                
+                tHint.dDist   = dD;
+               // tHint.tWhere  = tPoint;
+                tHint.tOffset = { .0, .0 };
+                tHint.dAngle  = dW;
+                tHint.nIndex  = tHint.nIndex;
+                tHint.eHint   = SHint::EHint::Close;
+                tHint.bForcePointer = true;
+                tHint.tLine   = {{ tHint.tWhere.x-sin(dW)*dD, tHint.tWhere.y-cos(dW)*dD},
+                                 { tHint.tWhere.x+sin(dW)*dD, tHint.tWhere.y+cos(dW)*dD} };
+
+                m_bCloseLine = true;
+                m_vDrawing.emplace_back( tHint.tLine );
+                }
+
+            if ( tHint.eHint == SHint::EHint::Close ) m_vHints.emplace_back(tHint);
+            }
+
+        // Parallel,    // nearest prallel line (same length?)
+
+        tHint.dDist = 1e9;
+        tHint.eHint = SHint::EHint::none;
+        i = 0;
+        for ( auto const & a:m_vDrawing)
+            {
+            auto l = Distance(m_oStartPoint, tPoint);
+            if ( double dW = abs(VectorAngleDiff(a, SLine{m_oStartPoint, tPoint}) ); dW < 7.0/l || abs(dW-M_PI) < 7.0/l )
+                {
+                SPoint iS = Intersection(a, SLine{ tPoint,
+                                                  {tPoint.x+sin(dW+M_PI/2)*100, 
+                                                   tPoint.y+cos(dW+M_PI/2)*100}} );
+
+                if ( double dD = Distance(tPoint, iS); dD < tHint.dDist )
                     {
-                    dDmin = dD;
-                    m_tCollision.d      = dW;
-                    m_tCollision.dAngle = (dW >.1) ? VectorSlope(a.b,a.a) : VectorSlope(a.a,a.b);
-                    m_tCollision.nIndex = i;
-                    m_tCollision.eWhat  = SCollision::EWhat::Line;
+                    tHint.dDist   = dD;
+                    tHint.tWhere  = tPoint;
+                    tHint.tOffset = { .0,.0 };
+                    tHint.dAngle  = (dW >.1) ? VectorSlope(a.b,a.a) : VectorSlope(a.a,a.b);
+                    tHint.nIndex  = i;
+                    tHint.eHint   = SHint::EHint::Parallel;
+                    tHint.bForcePointer = true;
+                    tHint.tLine   = {{0,0},{1,1}};
                     }
                 }
             ++i;
             }
+        if ( tHint.eHint == SHint::EHint::Parallel ) m_vHints.emplace_back(tHint);
+
+
+        // OnLine,      // mouse is on a line
+        // Tagente,     // nearest tangential point
+        // Center,      // nearest center of circle
+        // Mirror,      // same distance ?
+        // Orthogonal   // line would become orthogonal
         }
 
 
-    return m_tCollision.eWhat != SCollision::EWhat::none;
+    return m_vHints.size() > 0;
     }
 
 
@@ -95,10 +168,18 @@ bool CCanvas::on_button_press_event(GdkEventButton *event)
         m_tEventPress = *event;
         m_tShiftStart = m_tShift;
 
-        if ( Distance( m_tCollision.tWhere, m_tMousePos) < 20 )
-            m_oStartPoint = m_tCollision.tWhere;
-        else
-            m_oStartPoint = m_tMousePos;
+        m_bStartJoin = false;
+        for ( auto const & a:m_vHints )
+            if ( a.eHint == SHint::EHint::Point )
+                {
+                if ( Distance( a.tWhere, m_tMousePos) < 20 )
+                    {
+                    m_oStartPoint = a.tWhere;
+                    m_bStartJoin  = true;
+                    m_nStartJoin  = a.nIndex;
+                    }
+                }
+        if ( !m_bStartJoin ) m_oStartPoint = m_tMousePos;
         }
     else
         {
@@ -141,6 +222,7 @@ std::string s{"X"};
 bool CCanvas::on_button_release_event(GdkEventButton* event)
     {
     m_tMousePos = (*event - m_tShift)/m_dScale;
+    m_bButtonDown = false;
     
     if ( m_oButtonPressed.size() > 0 )
         {
@@ -153,7 +235,7 @@ bool CCanvas::on_button_release_event(GdkEventButton* event)
                     m_oButtonPressed = a.sFunct;
                     break;
                     }         
-            if ( m_oButtonPressed == "0" ) {}
+            if ( m_oButtonPressed == "0" ) { m_vDrawing.clear(); }
             if ( m_oButtonPressed == "1" ) {}
             if ( m_oButtonPressed == "2" ) {}
             if ( m_oButtonPressed == "3" ) {}
@@ -167,28 +249,56 @@ bool CCanvas::on_button_release_event(GdkEventButton* event)
     if ( event->type & GDK_MOTION_NOTIFY )
         if ( event->state & GDK_BUTTON1_MASK )
             {
-            
-            if ( m_tCollision.eWhat == SCollision::EWhat::Line )
+            double l;
+            SPoint tEndPoint{ m_tMousePos };
+            for ( auto const & a:m_vHints )
                 {
-                auto l{ Distance(m_oStartPoint,m_tMousePos) };
-                m_vDrawing.emplace_back( SLine{ m_oStartPoint, 
-                                               {m_oStartPoint.x + sin(m_tCollision.dAngle+M_PI/2)*l, 
-                                                m_oStartPoint.y + cos(m_tCollision.dAngle+M_PI/2)*l}} );
+                switch (a.eHint)
+                    {
+                    case SHint::EHint::Point: // 
+                        if ( Distance(m_oStartPoint, tEndPoint) > 20 &&
+                             Distance(a.tWhere,      tEndPoint) < 20 )
+                        tEndPoint = a.tWhere;
+                        break;
+                    case SHint::EHint::Parallel: // nearest prallel line (same length?)
+                        l = Distance(m_oStartPoint, tEndPoint);
+                        tEndPoint = {m_oStartPoint.x + sin(a.dAngle+M_PI/2)*l, 
+                                     m_oStartPoint.y + cos(a.dAngle+M_PI/2)*l};
+                        break;
+                    case SHint::EHint::Perpendicle: // Perpendicle
+                        break;
+                    case SHint::EHint::Close:   // 
+
+                        tEndPoint = a.tWhere;
+
+                        break;
+                    case SHint::EHint::OnLine:  // mouse is on a line
+                        break;
+                    case SHint::EHint::Tagente: // nearest tangential point
+                        break;
+                    case SHint::EHint::Center:  // nearest center of circle
+                        break;
+                    case SHint::EHint::Mirror:  // same distance ?
+                        break;
+                    case SHint::EHint::Orthogonal: // line would become orthogonal
+                        break;
+                    default:
+                        break;
+                    }
+                if ( m_bCloseLine )
+                    {
+                    m_bCloseLine = false;
+                    m_vDrawing.pop_back();
+                    }
                 }
-            else
-                {
-                if ( Distance( m_tCollision.tWhere, m_tMousePos) < 20 )
-                    m_vDrawing.emplace_back( SLine{ m_oStartPoint, m_tCollision.tWhere } );
-                else
-                    m_vDrawing.emplace_back( SLine{ m_oStartPoint, m_tMousePos } );
-                }
+
+            m_vDrawing.emplace_back( SLine{ m_oStartPoint, tEndPoint } );
+
             Collision(m_tMousePos);
             }
         if ( event->state & GDK_BUTTON3_MASK )
             {
             }
-
-    m_bButtonDown = false;
 
     queue_draw();
     return true;
@@ -236,57 +346,98 @@ bool CCanvas::on_draw(CairoCtx cr)
 
     // main content
 
-    LineWidth( cr, {2/m_dScale} );
-
-    switch (m_tCollision.eWhat)
+    // the hints
+    SPoint tEndPoint{ m_tMousePos };
+//    if ( m_bButtonDown )
         {
-        case SCollision::EWhat::none:
-            break;
-        case SCollision::EWhat::Element:
-            Color(cr, RED,  .25); Circle(cr, m_tCollision.tWhere, 20);
-            Color(cr, RED,  .75); Ring  (cr, m_tCollision.tWhere, 20);
-            Color(cr, GRAY, .25); Circle(cr, m_tCollision.tWhere,  5);
-            Color(cr, RED,  .5 ); Ring  (cr, m_tCollision.tWhere,  5);
-            break;
-        case SCollision::EWhat::Line:
-            cr->save();
-            LineWidth( cr, {5/m_dScale} );
-            Color(cr, RED,  .75); Line(cr, m_vDrawing[m_tCollision.nIndex]);
-            LineWidth( cr, {4/m_dScale} );
-            Color(cr, RED,  .25); Line(cr, m_vDrawing[m_tCollision.nIndex]);
-            LineWidth( cr, {1/m_dScale} );
-            Line(cr,SLine{m_oStartPoint, 
-                         {m_oStartPoint.x + sin(m_tCollision.dAngle+M_PI/2)*1000, 
-                          m_oStartPoint.y + cos(m_tCollision.dAngle+M_PI/2)*1000}});
-            cr->restore();
-            break;
+        double l;
+        
+        cr->save();
+        Color(cr, RED);
+        LineWidth(cr, {1});
+        for ( auto const & a:m_vHints )
+            {
+            switch (a.eHint)
+                {
+                case SHint::EHint::none: // nearest line point a,m,b
+                    break;
+                case SHint::EHint::Point: // nearest line point a,m,b
+
+                    cr->save();
+                    Color(cr, RED,  .25); Circle(cr, a.tWhere, 20);
+                    Color(cr, RED,  .75); Ring  (cr, a.tWhere, 20);
+                    Color(cr, GRAY, .25); Circle(cr, a.tWhere,  5);
+                    Color(cr, RED,  .5 ); Ring  (cr, a.tWhere,  5);
+                    cr->restore();
+
+                    if ( Distance(m_oStartPoint, tEndPoint) > 20 &&
+                         Distance(a.tWhere,      tEndPoint) < 20 )
+                      tEndPoint = a.tWhere;
+                    break;
+                case SHint::EHint::Parallel: // nearest prallel line (same length?)
+                //    if ( m_bButtonDown )
+                        {
+                        cr->save();
+                        LineWidth(cr, {5/m_dScale});
+                        Line(cr, m_vDrawing[a.nIndex]);
+                        cr->restore();
+
+                        cr->save();
+                        LineWidth(cr, {1/m_dScale});
+                        Line(cr,SLine{ m_oStartPoint, 
+                                      {m_oStartPoint.x + sin(a.dAngle+M_PI/2)*1000, 
+                                       m_oStartPoint.y + cos(a.dAngle+M_PI/2)*1000}});
+                        cr->restore();
+
+                        l = Distance(m_oStartPoint, tEndPoint);
+                        tEndPoint = {m_oStartPoint.x + sin(a.dAngle+M_PI/2)*l, 
+                                     m_oStartPoint.y + cos(a.dAngle+M_PI/2)*l};
+                        }
+                    break;
+                case SHint::EHint::Perpendicle: // perp. line to the line on starpoint
+                    break;
+                case SHint::EHint::Close: // 
+/*
+                    if ( m_bCloseLine && !m_bButtonDown )
+                        {
+                        m_bCloseLine = false;
+                        m_vDrawing.pop_back();
+                        }
+*/
+                    break;
+                case SHint::EHint::OnLine: // mouse is on a line
+                    break;
+                case SHint::EHint::Tagente: // nearest tangential point
+                    break;
+                case SHint::EHint::Center: // nearest center of circle
+                    break;
+                case SHint::EHint::Mirror: // same distance ?
+                    break;
+                case SHint::EHint::Orthogonal: // line would become orthogonal
+                    break;
+                }
+            }
+        cr->restore();
+        }
+        
+    if ( m_bButtonDown )
+        {
+        cr->save();
+        LineWidth(cr, {2/m_dScale});
+        Color(cr, BLACK);
+        Line(cr,SLine{ m_oStartPoint, tEndPoint });
+        cr->restore();
         }
 
 
+    // the drawing
+    
+    LineWidth(cr, {2/m_dScale});
     Color(cr, BLACK);
     for ( auto const & a:m_vDrawing )
         {
         Line(cr, a);
         }
-    
-    if ( m_bButtonDown )
-        {
-        if ( m_tCollision.eWhat == SCollision::EWhat::Line )
-            {
-            auto l{ Distance(m_oStartPoint,m_tMousePos) };
-            Line(cr,SLine{m_oStartPoint, 
-                         {m_oStartPoint.x + sin(m_tCollision.dAngle+M_PI/2)*l, 
-                          m_oStartPoint.y + cos(m_tCollision.dAngle+M_PI/2)*l}});
-            }
-        else
-            {
-            if ( Distance( m_tCollision.tWhere, m_tMousePos) < 20 )
-                Line( cr, m_oStartPoint, m_tCollision.tWhere );
-            else
-                Line( cr, m_oStartPoint, m_tMousePos );
-            }
-        }
-
 
     // clock (upper right corner)
 

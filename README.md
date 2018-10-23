@@ -36,4 +36,15 @@ a Cairo program adding zooming of tha canvas  whilst keeping the canvas shifter 
 a Cairo program adding two different animation clocks to the mix, demonstrating multi animation
 ### d-text
 a Cairo program adding text to all other functions
+### e-ui-button-bar
+adding a button bar
+### f-drawing-helpers
 
+### g-app-draw
+a simple drawing application
+### h-3-lagen-synthese
+a mechanism sythese application
+### i-4-bar-analytics
+a mechanism analyse application
+### k-like-cad
+an experimental CAD application

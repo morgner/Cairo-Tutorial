@@ -172,8 +172,8 @@ inline SPoint Text( CairoCtx cr,
         cr->save();
         Color(cr, GRAY, .75);
         LineWidth(cr, {.0+iHeight});
-        Line(cr, {{tPos.x        +tSize.y/4, tPos.y},
-                  {tPos.x+tSize.x-tSize.y/4, tPos.y}});    
+        Line(cr, SLine{{tPos.x        +tSize.y/4, tPos.y},
+                       {tPos.x+tSize.x-tSize.y/4, tPos.y}});    
         cr->restore();
         }
 
@@ -190,18 +190,56 @@ inline SPoint Text( CairoCtx cr,
     return std::move(tSize);
     }
 
+
 using VDrawing = std::vector<SLine>;
+
+
+struct SHint
+    {
+    double  dDist   {  1e9  };
+    SPoint  tWhere  { .0,.0 };
+    SPoint  tOffset { .0,.0 };
+    bool    bForcePointer { false };
+    SLine   tLine   {{0,0},{1,1}};
+    double  dAngle  { 1e9 };
+    enum class EHint
+        {
+        none,
+        Point,       // nearest line point a,m,b
+        Parallel,    // nearest prallel line (same length?)
+        Perpendicle, // perp. line to the line on starpoint
+        Close,       // hint when closingn a geometry
+        OnLine,      // mouse is on a line
+        Tagente,     // nearest tangential point
+        Center,      // nearest center of circle
+        Mirror,      // same distance ?
+        Orthogonal   // line would become orthogonal
+        } eHint{EHint::none};
+    size_t nIndex { 0 };
+    size_t nSubIx { 0 };
+    };
+using VHints   = std::vector<SHint>;
 
 class CCanvas : public Gtk::DrawingArea
     {
     public:
-    
+
+        VHints   m_vHints;
         VDrawing m_vDrawing;
-        SPoint   m_oStartPoint;
         
+        bool     m_bStartPoint{false};
+        SPoint   m_oStartPoint;
+        bool     m_bStartJoin{false};
+        size_t   m_nStartJoin{0};
+        bool     m_bStartHint{false};
+        
+        bool     m_bEndHint{false};
+        SPoint   m_tEndHint{.0,.0};
+        
+        bool     m_bCloseLine{false};
 
 
-        bool m_bButtonDown{ false };
+        bool m_bButtonDown{false};
 
         void AnimateHlt()    { m_bAnimate       = !m_bAnimate; }
         void AnimateAdd()    { m_dAnimate *= 1.1; m_dAnimate = (m_dAnimate>m_dAnimateMax)?m_dAnimateMax:m_dAnimate; }
@@ -259,20 +297,7 @@ class CCanvas : public Gtk::DrawingArea
         SPoint   m_tMousePos;
 
     public:
-/*
-        struct SMinimum
-            {
-            double d{1e9};
-            size_t i{0};     // index into drawing vector
-            int    s{0};     // subIndex, 0,1,2 => p1,pm,p2
-            enum class EWhat
-                {
-                none,
-                Element,
-                Line
-                }eWhat {EWhat::none};
-            } m_tMinimum;
-*/
+
         struct SCollision
             {
             double d       {  1e9  };
@@ -282,9 +307,8 @@ class CCanvas : public Gtk::DrawingArea
             enum class EWhat
                 {
                 none,
-                Element,
-                Line
-                }eWhat {EWhat::none};
+                Element
+                } eWhat {EWhat::none};
             size_t nIndex { 0 };
             size_t nSubIx { 0 };
             } m_tCollision;

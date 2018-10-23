@@ -183,12 +183,13 @@ inline double VectorSlope(SPoint const & a, SPoint const & b)
     return sba;
     }
 
-inline double VectorAngleDiff(SLine const & a, SLine const & b)
-    {
-    auto   sla = VectorSlope(a.a,a.b);
-    auto   slb = VectorSlope(b.a,b.b);
-    return sla - slb;
-    }
+template<typename P, typename T>
+    double VectorAngleDiff(P const & a, T const & b)
+        {
+        auto   sla = VectorSlope(a.a,a.b);
+        auto   slb = VectorSlope(b.a,b.b);
+        return sla - slb;
+        }
 
 inline double VectorDiff(SPoint const & a, SPoint const & b, SPoint const & c)
     {
@@ -226,24 +227,25 @@ inline SEbene FixedLenLine(SLine & roL, double const & crnLen, bool const & crbF
 
 
 
-inline SPoint Intersection(SLine const & E1, SLine const & E2)
-    {
-    auto const dx1 { E1.b.x - E1.a.x };
-    auto const dx2 { E2.b.x - E2.a.x };
+template<typename P, typename T>
+    SPoint Intersection(P const & E1, T const & E2)
+        {
+        auto const dx1 { E1.b.x - E1.a.x };
+        auto const dx2 { E2.b.x - E2.a.x };
 
-    auto const m1 { (E1.b.y - E1.a.y) / ((dx1==0)?1e-9:dx1) }; // Steigungen ermitteln
-    auto const m2 { (E2.b.y - E2.a.y) / ((dx2==0)?1e-9:dx2) };
+        auto const m1 { (E1.b.y - E1.a.y) / ((dx1==0)?1e-9:dx1) }; // Steigungen ermitteln
+        auto const m2 { (E2.b.y - E2.a.y) / ((dx2==0)?1e-9:dx2) };
 
-    // if (ROUND(m1,MAX_ACCURACY)==ROUND(m2,MAX_ACCURACY)) return false; // Geraden sind parallel
+        // if (ROUND(m1,MAX_ACCURACY)==ROUND(m2,MAX_ACCURACY)) return false; // Geraden sind parallel
 
-    auto const n1 { E1.a.y - (m1*E1.a.x) }; // Abstände von X-Achse ermitteln
-    auto const n2 { E2.a.y - (m2*E2.a.x) };
+        auto const n1 { E1.a.y - (m1*E1.a.x) }; // Abstände von X-Achse ermitteln
+        auto const n2 { E2.a.y - (m2*E2.a.x) };
 
-    auto const  x { (n2-n1)/(m1-m2) }; // Schnittpunktkoordinate berechnen
-    auto const  y { m1*x+n1 };
+        auto const  x { (n2-n1)/(m1-m2) }; // Schnittpunktkoordinate berechnen
+        auto const  y { m1*x+n1 };
 
-    return { x, y };
-  } // Intersection
+        return { x, y };
+        } // Intersection
 
 
 inline SLine Perpendicle(SLine const & l)
