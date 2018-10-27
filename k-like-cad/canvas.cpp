@@ -70,12 +70,10 @@ bool CCanvas::Collision(SPoint const & tPoint)
             }
         if ( tHint.eHint == SHint::EHint::Point ) m_vHints.emplace_back(tHint);
 
-        // Perpendicle, // perp. line to the line on starpoint
-
-
-
         // Close
-
+        
+        SHint const tHintBefore{ tHint };
+        
         if ( tHint.eHint == SHint::EHint::Point && !m_bCloseLine && m_bButtonDown )
             {
             if ( Distance(m_oStartPoint, tPoint) > 20 &&
@@ -94,7 +92,7 @@ bool CCanvas::Collision(SPoint const & tPoint)
                // tHint.tWhere  = tPoint;
                 tHint.tOffset = { .0, .0 };
                 tHint.dAngle  = dW;
-                tHint.nIndex  = tHint.nIndex;
+               // tHint.nIndex  = tHint.nIndex;
                 tHint.eHint   = SHint::EHint::Close;
                 tHint.bForcePointer = true;
                 tHint.tLine   = {{ tHint.tWhere.x-sin(dW)*dD, tHint.tWhere.y-cos(dW)*dD},
@@ -107,36 +105,86 @@ bool CCanvas::Collision(SPoint const & tPoint)
             if ( tHint.eHint == SHint::EHint::Close ) m_vHints.emplace_back(tHint);
             }
 
-        // Parallel,    // nearest prallel line (same length?)
+        tHint = tHintBefore;
 
-        tHint.dDist = 1e9;
-        tHint.eHint = SHint::EHint::none;
-        i = 0;
-        for ( auto const & a:m_vDrawing)
+        // Perpendicle, // perp. line to the line on starpoint
+
+        if ( tHint.eHint == SHint::EHint::Point && m_bButtonDown )
             {
-            auto l = Distance(m_oStartPoint, tPoint);
-            if ( double dW = abs(VectorAngleDiff(a, SLine{m_oStartPoint, tPoint}) ); dW < 7.0/l || abs(dW-M_PI) < 7.0/l )
+            if ( Distance(m_oStartPoint, tPoint) > 20 )
                 {
-                SPoint iS = Intersection(a, SLine{ tPoint,
-                                                  {tPoint.x+sin(dW+M_PI/2)*100, 
-                                                   tPoint.y+cos(dW+M_PI/2)*100}} );
+                auto const & a = m_vDrawing[tHint.nIndex];
+                auto const   l = Distance(m_oStartPoint, tPoint);
+                auto const   e = (7.0/l);
+                
+                double dA  = VectorSlope(m_oStartPoint, tPoint);
+                double dB  = VectorSlope(a.a,a.b) ;
+                double dW  = dB - dA;
 
-                if ( double dD = Distance(tPoint, iS); dD < tHint.dDist )
+// std::cout << "0: " << dW/M_PI*180 << ", " << dA/M_PI*180 << ", " << dB/M_PI*180 << '\n';
+
+                while ( dW < 0 )
                     {
-                    tHint.dDist   = dD;
-                    tHint.tWhere  = tPoint;
-                    tHint.tOffset = { .0,.0 };
-                    tHint.dAngle  = (dW >.1) ? VectorSlope(a.b,a.a) : VectorSlope(a.a,a.b);
-                    tHint.nIndex  = i;
-                    tHint.eHint   = SHint::EHint::Parallel;
+                    dW += M_PI;
+// std::cout << "1: " << dW/M_PI*180 << ", " << dA/M_PI*180 << ", " << dB/M_PI*180 << '\n';
+                    }
+
+                while ( dW+e > M_PI )
+                    {
+                    dW -= M_PI;
+// std::cout << "2: " << dW/M_PI*180 << ", " << dA/M_PI*180 << ", " << dB/M_PI*180 << '\n';
+                    }
+// std::cout << '\n';
+
+                if ( dW - M_PI/2 < e && dW - M_PI/2 > -e )
+                    {
+                    tHint.dDist   = l;
+                 // tHint.tWhere  = tHint.tWhere;
+                    tHint.tOffset = { .0, .0 };
+                    tHint.dAngle  = dA + ( dW - M_PI/2 );
+                 // tHint.nIndex  = tHint.nIndex;
+                    tHint.eHint   = SHint::EHint::Perpendicle;
                     tHint.bForcePointer = true;
-                    tHint.tLine   = {{0,0},{1,1}};
+                 // tHint.tLine   = {{0,0},{1,1}};
                     }
                 }
-            ++i;
-            }
-        if ( tHint.eHint == SHint::EHint::Parallel ) m_vHints.emplace_back(tHint);
 
+            if ( tHint.eHint == SHint::EHint::Perpendicle ) m_vHints.emplace_back(tHint);
+            }
+
+        // Parallel,    // nearest prallel line (same length?)
+
+        if ( m_bButtonDown && tHint.eHint != SHint::EHint::Perpendicle )
+            {
+            tHint.dDist = 1e9;
+            tHint.eHint = SHint::EHint::none;
+            i = 0;
+            for ( auto const & a:m_vDrawing)
+                {
+                auto l = Distance(m_oStartPoint, tPoint);
+                if ( double dW = abs(VectorAngleDiff(a, SLine{m_oStartPoint, tPoint}) ); dW < 7.0/l || abs(dW-M_PI) < 7.0/l )
+                    {
+// std::cout << "P: " << dW/M_PI*180 << '\n' << '\n';
+                    SPoint iS = Intersection(a, SLine{ tPoint,
+                                                      {tPoint.x+sin(dW+M_PI/2)*100, 
+                                                       tPoint.y+cos(dW+M_PI/2)*100}} );
+
+                    if ( double dD = Distance(tPoint, iS); dD < tHint.dDist )
+                        {
+                        tHint.dDist   = dD;
+                        tHint.tWhere  = tPoint;
+                        tHint.tOffset = { .0,.0 };
+                        tHint.dAngle  = (dW < 7.0/l) ? VectorSlope(a.b,a.a) : VectorSlope(a.a,a.b);
+                        tHint.nIndex  = i;
+                        tHint.eHint   = SHint::EHint::Parallel;
+                        tHint.bForcePointer = true;
+                        tHint.tLine   = {{0,0},{1,1}};
+                        }
+                    }
+                ++i;
+                }
+            if ( tHint.eHint == SHint::EHint::Parallel ) m_vHints.emplace_back(tHint);
+            }
 
         // OnLine,      // mouse is on a line
         // Tagente,     // nearest tangential point
@@ -262,10 +310,13 @@ bool CCanvas::on_button_release_event(GdkEventButton* event)
                         break;
                     case SHint::EHint::Parallel: // nearest prallel line (same length?)
                         l = Distance(m_oStartPoint, tEndPoint);
-                        tEndPoint = {m_oStartPoint.x + sin(a.dAngle+M_PI/2)*l, 
-                                     m_oStartPoint.y + cos(a.dAngle+M_PI/2)*l};
+                        tEndPoint = {m_oStartPoint.x - sin(a.dAngle+M_PI/2)*l, 
+                                     m_oStartPoint.y - cos(a.dAngle+M_PI/2)*l};
                         break;
                     case SHint::EHint::Perpendicle: // Perpendicle
+                        l = Distance(m_oStartPoint, tEndPoint);
+                        tEndPoint = {m_oStartPoint.x + sin(a.dAngle+M_PI/2)*l, 
+                                     m_oStartPoint.y + cos(a.dAngle+M_PI/2)*l};
                         break;
                     case SHint::EHint::Close:   // 
 
@@ -385,6 +436,26 @@ bool CCanvas::on_draw(CairoCtx cr)
                         cr->save();
                         LineWidth(cr, {1/m_dScale});
                         Line(cr,SLine{ m_oStartPoint, 
+                                      {m_oStartPoint.x - sin(a.dAngle+M_PI/2)*1000, 
+                                       m_oStartPoint.y - cos(a.dAngle+M_PI/2)*1000}});
+                        cr->restore();
+
+                        l = Distance(m_oStartPoint, tEndPoint);
+                        tEndPoint = {m_oStartPoint.x - sin(a.dAngle+M_PI/2)*l, 
+                                     m_oStartPoint.y - cos(a.dAngle+M_PI/2)*l};
+                        }
+                    break;
+                case SHint::EHint::Perpendicle: // perp. line to the line on starpoint
+                //    if ( m_bButtonDown )
+                        {
+                        cr->save();
+                        LineWidth(cr, {5/m_dScale});
+                        Line(cr, m_vDrawing[a.nIndex]);
+                        cr->restore();
+
+                        cr->save();
+                        LineWidth(cr, {1/m_dScale});
+                        Line(cr,SLine{ m_oStartPoint, 
                                       {m_oStartPoint.x + sin(a.dAngle+M_PI/2)*1000, 
                                        m_oStartPoint.y + cos(a.dAngle+M_PI/2)*1000}});
                         cr->restore();
@@ -393,8 +464,6 @@ bool CCanvas::on_draw(CairoCtx cr)
                         tEndPoint = {m_oStartPoint.x + sin(a.dAngle+M_PI/2)*l, 
                                      m_oStartPoint.y + cos(a.dAngle+M_PI/2)*l};
                         }
-                    break;
-                case SHint::EHint::Perpendicle: // perp. line to the line on starpoint
                     break;
                 case SHint::EHint::Close: // 
 /*
@@ -432,11 +501,22 @@ bool CCanvas::on_draw(CairoCtx cr)
 
     // the drawing
     
+    int i=0;
     LineWidth(cr, {2/m_dScale});
     Color(cr, BLACK);
     for ( auto const & a:m_vDrawing )
         {
-        Line(cr, a);
+        if (m_bCloseLine && i == m_vDrawing.size()-1)
+            {
+            cr->save();
+            LineWidth(cr, {2/m_dScale});
+            Color(cr, BLUE);
+            Line(cr, a);
+            cr->restore();
+            }
+        else
+            Line(cr, a);
+        ++i;
         }
 
     // clock (upper right corner)
@@ -449,7 +529,7 @@ bool CCanvas::on_draw(CairoCtx cr)
 
     // Buttons
         
-    int i=0;
+    i=0;
     SPoint const tMousePos{m_tMousePos*m_dScale+m_tShift};
     for ( auto const & a:m_voButtons )
         {
