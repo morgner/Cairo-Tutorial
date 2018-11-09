@@ -34,7 +34,7 @@ bool CCanvas::Collision(SPoint const & tPoint)
         tHint.dDist = 1e9;
         tHint.eHint = SHint::EHint::none;
         i = 0;
-        for ( auto const & a:m_vDrawing)
+        for (auto const & a:m_vDrawing)
             {
             if ( double d = Distance(a.a, tPoint); d < tHint.dDist )
                 {
@@ -509,7 +509,7 @@ bool CCanvas::on_draw(CairoCtx cr)
         if (m_bCloseLine && i == m_vDrawing.size()-1)
             {
             cr->save();
-            LineWidth(cr, {2/m_dScale});
+            LineWidth(cr, {1/m_dScale});
             Color(cr, BLUE);
             Line(cr, a);
             cr->restore();
