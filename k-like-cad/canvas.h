@@ -241,7 +241,7 @@ class CCanvas : public Gtk::DrawingArea
 
         bool m_bButtonDown{false};
 
-        void AnimateHlt()    { m_bAnimate       = !m_bAnimate; }
+        void AnimateHlt()    { m_bAnimate  = !m_bAnimate; }
         void AnimateAdd()    { m_dAnimate *= 1.1; m_dAnimate = (m_dAnimate>m_dAnimateMax)?m_dAnimateMax:m_dAnimate; }
         void AnimateSub()    { m_dAnimate *= 0.9; m_dAnimate = (m_dAnimate<m_dAnimateMin)?m_dAnimateMin:m_dAnimate; }
         void AnimateRev()    { m_bAnimateLeft = !m_bAnimateLeft; }
@@ -308,7 +308,7 @@ class CCanvas : public Gtk::DrawingArea
                 {
                 none,
                 Element
-                } eWhat {EWhat::none};
+                } eWhat { EWhat::none };
             size_t nIndex { 0 };
             size_t nSubIx { 0 };
             } m_tCollision;
