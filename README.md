@@ -14,8 +14,34 @@ an empty C++ program
 ### 1-empty-cairo-program
 an empty Cairo program
 
+let us open a GDK window filled with Cairo filled with nothing
+
 ### 2-a-red-line
 a Cairo program showing a line
+
+we need to override default signal handler
+```c++
+bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
+```
+this is, what we do override it for
+```c++
+bool on_draw(Cairo::RefPtr<Cairo::Context> const & cr)
+    {
+    cr->set_source_rgb(1.,.5,.0);
+    cr->set_line_width(3);
+
+    cr->move_to( 11, 11);
+    cr->line_to(111,111);
+    cr->stroke();
+
+    return true;
+    }
+```
+ * inform the context about the next colour
+ * inform it about the next line width
+ * move the pencil to 11,11
+ * propose a line to the context, to 111,111
+ * request the context to draw this line using all accumulated information
 
 ### 3-a-total-line
 showing a line trough the complete window
