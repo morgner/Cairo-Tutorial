@@ -31,12 +31,14 @@ a Cairo program tracking the mouse pointer
 
 intoducing the first GDK callback into the Cairo application
 
-`bool on_motion_notify_event(GdkEventMotion *event)
+```C++
+bool on_motion_notify_event(GdkEventMotion *event)
     {
     tMousePos = SPoint{*event};
     queue_draw();
     return true;
-    }`
+    }
+```
 
   * saving the current mouse position to draw a point there later
   * from Cairo request a call to `bool on_draw(...)`
@@ -44,9 +46,11 @@ intoducing the first GDK callback into the Cairo application
 
 show the result utilizing `on_draw(...)`
 
-`cr->set_source_rgb(.0,.0,.9);
+```c++
+cr->set_source_rgb(.0,.0,.9);
 cr->arc(m_tMousePos.x, m_tMousePos.y, 3, 0, 2*M_PI);
-cr->fill();`
+cr->fill();
+```
 
  * set the colour to blue
  * declare a circle at mouse position
