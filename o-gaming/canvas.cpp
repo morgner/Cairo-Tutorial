@@ -53,7 +53,7 @@ bool CCanvas::on_button_press_event(GdkEventButton *event)
         }
     else
         {
-        auto const bCol { Collision(m_tMousePos) };
+//      auto const bCol { Collision(m_tMousePos) };
         }
 
     m_bButtonDown = true;
@@ -76,11 +76,11 @@ bool CCanvas::on_motion_notify_event(GdkEventMotion *event)
             }
         else if ( event->state & GDK_BUTTON1_MASK )
             {
-            Collision(m_tMousePos);
+//          Collision(m_tMousePos);
             }
         else
             {
-            auto const bCol { Collision(m_tMousePos) };
+//          auto const bCol { Collision(m_tMousePos) };
             }
         }
 
@@ -118,7 +118,7 @@ bool CCanvas::on_button_release_event(GdkEventButton* event)
     if ( event->type & GDK_MOTION_NOTIFY )
         if ( event->state & GDK_BUTTON1_MASK )
             {
-            Collision(m_tMousePos);
+//          Collision(m_tMousePos);
             }
         if ( event->state & GDK_BUTTON3_MASK )
             {
