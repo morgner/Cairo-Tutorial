@@ -43,8 +43,7 @@ bool CCanvas::on_draw(Cairo::RefPtr<Cairo::Context> const & cr)
     // - show the hole
     cr->fill();
 
-    
-    
+    // draw a blue circle at last mouse position
     cr->set_source_rgb(.0,.0,.9);
     cr->arc(m_tMousePos.x, m_tMousePos.y, 3, 0, 2*M_PI);
     cr->fill();
