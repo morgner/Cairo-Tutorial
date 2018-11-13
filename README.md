@@ -48,7 +48,7 @@ show the result utilizing `on_draw(...)`
 
 ```c++
 cr->set_source_rgb(.0,.0,.9);
-cr->arc(m_tMousePos.x, m_tMousePos.y, 3, 0, 2*M_PI);
+cr->arc(tMousePos.x, tMousePos.y, 3, 0, 2*M_PI);
 cr->fill();
 ```
 
