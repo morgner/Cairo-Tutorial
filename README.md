@@ -44,10 +44,47 @@ bool on_draw(Cairo::RefPtr<Cairo::Context> const & cr)
  * request the context to draw this line using all accumulated information
 
 ### 3-a-total-line
-showing a line trough the complete window
+showing a line trough the complete window.
+
+To enable this, we need to know
+the visible coordinates range of the cairo render context:
+```c++
+Gtk::Allocation allocation{ get_allocation() };
+auto const width { (double)allocation.get_width() };
+auto const height{ (double)allocation.get_height() };
+```
+now the total line:
+```c++
+cr->move_to(    0,      0);
+cr->line_to(width, height);
+cr->stroke();
+```
+and a funny gray circle in the middle:
+```c++
+cr->set_source_rgb(.7,.7,.7);
+cr->arc(width/2, height/2, 100, 0, 2*M_PI);
+cr->fill();
+```
 
 ### 4-picture-png
 a Cairo program showing a png picture
+
+```c++
+static Glib::RefPtr<Gdk::Pixbuf> const image  = Gdk::Pixbuf::create_from_file("CairoTut.png");
+static Glib::RefPtr<Gdk::Pixbuf>       imageS = image->scale_simple( 180, 180, Gdk::INTERP_BILINEAR);
+Gdk::Cairo::set_source_pixbuf(cr, imageS, width/2-90, height/2-90 );
+cr->rectangle( width/2-90, height/2-90, 180, 180 );
+cr->fill();
+```
+ * load picture
+static Glib::RefPtr<Gdk::Pixbuf> const image  = Gdk::Pixbuf::create_from_file("CairoTut.png");
+ * scale picture to destination size
+static Glib::RefPtr<Gdk::Pixbuf>       imageS = image->scale_simple( 180, 180, Gdk::INTERP_BILINEAR);
+ * place scaled pictures to specified position in render context
+Gdk::Cairo::set_source_pixbuf(cr, imageS, width/2-90, height/2-90 );
+ * open a hole for the pixels
+cr->rectangle( width/2-90, height/2-90, 180, 180 );
+ * show the hole
 
 ### 5-picture-svg
 a Cairo program showing a svg drawing
@@ -77,13 +114,49 @@ cr->set_source_rgb(.0,.0,.9);
 cr->arc(tMousePos.x, tMousePos.y, 3, 0, 2*M_PI);
 cr->fill();
 ```
-
  * set the colour to blue
- * declare a circle at mouse position
+ * declare a circle at saved mouse position
  * fill the declared circle with the set colour
 
 ### 7-mouse-complete
 a Cairo program tracking the mouse pointer and intractively drawing a line
+
+```c++
+bool CCanvas::on_button_press_event(GdkEventButton *event)
+    {
+    m_tMouseColor = { .0,.0,.9 };
+    queue_draw();
+    return true;
+    }
+```
+ * if a mouse button is pressed, the mouse color becomes blue
+ * to show thw change, a redraw is queued
+```c++
+bool CCanvas::on_button_release_event(GdkEventButton* event)
+    {
+    m_tMouseColor = { .5,.5,.5 };
+    m_vMouseTrail.emplace_back( SPoint{ *event } );
+    queue_draw();
+    return true;
+    }
+```
+ * if a mouse button is released, the position becomes queued
+```c++
+bool CCanvas::on_draw(Cairo::RefPtr<Cairo::Context> const & cr)
+    {
+    cr->set_source_rgb( .0,.0,.0 );
+    cr->set_line_width(3);
+    if ( m_vMouseTrail.size() )
+        {
+        cr->move_to(m_vMouseTrail[0].x,m_vMouseTrail[0].y);
+        for (auto const & a:m_vMouseTrail)
+            {
+            cr->line_to( a.x, a.y);
+            }
+        cr->stroke();
+        }
+```
+  * draw lines connecting all trigger points
 
 ### 8-collision
 a Cairo program demonstraing the collision between the mouse pointer and graphucal objects
