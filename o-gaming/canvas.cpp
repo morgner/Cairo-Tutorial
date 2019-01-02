@@ -72,7 +72,7 @@ bool CCanvas::on_motion_notify_event(GdkEventMotion *event)
         {
         if ( event->state & GDK_BUTTON3_MASK )
             {
-            m_tShift = m_tShiftStart - (m_tEventPress - *event);
+//          m_tShift = m_tShiftStart - (m_tEventPress - *event);
             }
         else if ( event->state & GDK_BUTTON1_MASK )
             {
@@ -131,6 +131,8 @@ bool CCanvas::on_button_release_event(GdkEventButton* event)
     
 bool CCanvas::on_scroll_event(GdkEventScroll *event)
     {
+    return true;
+
     SPoint const p0{ (*event - m_tShift)/m_dScale };
     m_dScale *= (event->delta_y>0)?.9:1.1; if (m_dScale<.01) m_dScale=.01;
     SPoint const p1{ (*event - m_tShift)/m_dScale };
